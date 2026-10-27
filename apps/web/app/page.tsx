@@ -1,6 +1,7 @@
 'use client';
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { analyzeText } from '../lib/analyze';
 
 type Analysis={risk_score:number;risk_level:string;indicators:string[];recommendation:string;disclaimer:string};
 type Mode='message'|'link'|'payment';
@@ -26,15 +27,27 @@ export default function Home(){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [copied,setCopied]=useState(false);
+ const [privateMode,setPrivateMode]=useState(true);
+ const [qrError,setQrError]=useState('');
  async function submit(event:FormEvent<HTMLFormElement>){
   event.preventDefault();setBusy(true);setError('');setResult(null);setCopied(false);
   try{
+   if(privateMode){setResult(analyzeText(value));return;}
    const response=await fetch('/api/analyze',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:value}),cache:'no-store'});
    const data=await response.json();
    if(!response.ok)throw new Error(data.error||'Could not check this content.');
    setResult(data as Analysis);
   }catch(e){setError(e instanceof Error?e.message:'Something went wrong.');}
   finally{setBusy(false);}
+ }
+ async function decodeQr(file:File){
+  setQrError('');setResult(null);
+  if(file.size>5_000_000){setQrError('Choose an image under 5 MB.');return;}
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)){setQrError('Choose a PNG, JPEG or WebP image.');return;}
+  const BrowserDetector=(window as unknown as {BarcodeDetector?:new(options:{formats:string[]})=>{detect(source:ImageBitmap):Promise<Array<{rawValue:string}>>}}).BarcodeDetector;
+  if(!BrowserDetector){setQrError('QR decoding is not supported in this browser. Paste the QR destination URL instead.');return;}
+  try{const image=await createImageBitmap(file);try{const codes=await new BrowserDetector({formats:['qr_code']}).detect(image);if(!codes.length){setQrError('No QR code found. Try a clearer image.');return;}const destination=codes[0].rawValue;if(destination.length>8000){setQrError('The QR content is too long.');return;}setMode('link');setValue(destination);}finally{image.close();}}
+  catch{setQrError('Could not read that image. Try a clearer image or paste the destination URL.');}
  }
  function choose(next:Mode){setMode(next);setResult(null);setError('');setValue('');}
  async function copyResult(){
@@ -49,6 +62,8 @@ export default function Home(){
   <section className="hero wrap" id="main-content"><div className="heroContent"><div className="eyebrow"><span className="pulse" aria-hidden="true"/> FREE DIGITAL SAFETY TOOLS · EARLY BETA</div><h1>Scams are getting smarter.<br/><em>So can you.</em></h1><p>Check suspicious messages, links and payment requests. Understand the warning signs and know what to do next — in plain language.</p><div className="heroActions"><a href="#shield" className="primary">Check something suspicious <span aria-hidden="true">↗</span></a><Link href="/learn" className="secondary">I need help now</Link></div><div className="trust"><span>✓ No signup</span><span>✓ Free to use</span><span>✓ No link visits</span></div></div><div className="heroVisual" aria-hidden="true"><div className="visualGlow"/><div className="visualShield"><span>◈</span><strong>DRAGON<br/>SHIELD</strong><small>KNOW BEFORE YOU ACT</small></div><div className="visualTag top">◉ EXPLAINABLE CHECKS</div><div className="visualTag bottom">✧ PRIVACY FIRST</div></div></section>
   <section className="scanner wrap" id="shield" aria-labelledby="shield-title"><div className="scannerHead"><div><span className="sectionTag">01 / DRAGON SHIELD</span><h2 id="shield-title">What would you like to check?</h2><p>Choose a category, paste the content and get an understandable assessment.</p></div><span className="status">● AVAILABLE NOW</span></div>
    <div className="modeGrid" role="group" aria-label="Check type">{modes.map(item=><button type="button" key={item.id} className={'modeCard '+(mode===item.id?'selected':'')} aria-pressed={mode===item.id} onClick={()=>choose(item.id)}><span className="modeIcon" aria-hidden="true">{item.icon}</span><span><strong>{item.title}</strong><small>{item.description}</small></span></button>)}</div>
+   <div className="privacyToggle"><label><input type="checkbox" checked={privateMode} onChange={e=>setPrivateMode(e.target.checked)}/> <strong>Private on-device analysis</strong></label><span>{privateMode?'Your message stays in this browser. No scan request is sent to Cyber Dragon.':'Your text will be sent to the Cyber Dragon server for analysis.'}</span></div>
+   {mode==='link'&&<div className="qrUpload"><label htmlFor="qr-image">Or scan a QR code from an image (supported browsers)</label><input id="qr-image" type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>{const file=e.target.files?.[0];if(file)void decodeQr(file);e.target.value='';}}/><p>QR decoding happens on your device. Cyber Dragon does not open the destination.</p>{qrError&&<p role="alert">{qrError}</p>}</div>}
    <form onSubmit={submit}><div className="formTitle"><label htmlFor="threat">{mode==='link'?'Paste a website URL':mode==='payment'?'Paste a suspicious payment request':'Paste a suspicious message'}</label><button type="button" className="sample" onClick={()=>{setValue(samples[mode]);setResult(null);setError('');}}>Try an example</button></div><textarea id="threat" value={value} onChange={e=>setValue(e.target.value)} maxLength={8000} required rows={5} placeholder={mode==='link'?'https://example.com/suspicious-page':mode==='payment'?'Paste the payment message here...':'Paste an SMS, email or chat message here...'}/><div className="formBottom"><span>{value.length.toLocaleString()} / 8,000 characters</span><button type="submit" disabled={busy||!value.trim()}>{busy?'Checking…':'Analyze now →'}</button></div></form>
    <p className="privacy">🔒 Do not paste passwords, PINs, OTPs or personal data. Checks use limited rules; they cannot confirm whether something is safe. No submitted links are opened.</p>
    {error&&<div role="alert" className="error">{error}</div>}
