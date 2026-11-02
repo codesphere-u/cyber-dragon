@@ -1,0 +1,14 @@
+[project]
+name = "cyber-dragon-threat-api"
+version = "1.0.0"
+description = "Cyber Dragon SSRF-free heuristic threat analysis and PII-redacting incident report API"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0,<1.0.0",
+    "uvicorn>=0.30.0,<1.0.0",
+    "pydantic>=2.7.0,<3.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
