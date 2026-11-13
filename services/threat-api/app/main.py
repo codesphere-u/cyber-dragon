@@ -1,12 +1,19 @@
 """Cyber Dragon Threat API v1.0: Explainable, SSRF-free defensive heuristics and PII-redacting incident reports."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import logging
 import re
+import threading
+import time
+import uuid
+from datetime import UTC, datetime
 from urllib.parse import parse_qs, urlsplit
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger("cyber_dragon.threat_api")
 
 app = FastAPI(
     title="Cyber Dragon Threat API",
@@ -14,16 +21,101 @@ app = FastAPI(
     description="SSRF-free static threat heuristic engine for scam messages, phishing URLs, and African Mobile Money / USSD fraud patterns.",
 )
 MAX_BODY = 16_384
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+SECURITY_HEADERS: dict[str, str] = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Cache-Control": "no-store",
+}
+
+_START_TIME = time.monotonic()
+_METRICS_LOCK = threading.Lock()
+_METRICS: dict[str, int] = {
+    "requests_total": 0,
+    "rejected_oversized_total": 0,
+    "analyses_total": 0,
+    "high_risk_detections_total": 0,
+    "incident_reports_total": 0,
+    "unhandled_errors_total": 0,
+}
+
+
+def _inc_metric(name: str, delta: int = 1) -> None:
+    with _METRICS_LOCK:
+        _METRICS[name] = _METRICS.get(name, 0) + delta
+
+
+def _snapshot_metrics() -> dict[str, int | float]:
+    with _METRICS_LOCK:
+        snapshot: dict[str, int | float] = dict(_METRICS)
+    snapshot["uptime_seconds"] = round(time.monotonic() - _START_TIME, 3)
+    return snapshot
+
+
+def _resolve_request_id(request: Request) -> str:
+    existing = getattr(request.state, "request_id", None)
+    if isinstance(existing, str) and existing:
+        return existing
+    candidate = request.headers.get("x-request-id", "").strip()
+    request_id = candidate if REQUEST_ID_PATTERN.fullmatch(candidate) else str(uuid.uuid4())
+    request.state.request_id = request_id
+    return request_id
+
+
+def _apply_response_headers(response: Response, request_id: str) -> Response:
+    response.headers["X-Request-ID"] = request_id
+    for header, value in SECURITY_HEADERS.items():
+        response.headers.setdefault(header, value)
+    return response
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception) -> Response:
+    request_id = _resolve_request_id(request)
+    _inc_metric("unhandled_errors_total")
+    logger.error(
+        "Unhandled exception request_id=%s path=%s type=%s",
+        request_id,
+        request.url.path,
+        type(exc).__name__,
+    )
+    response = JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error", "request_id": request_id},
+    )
+    return _apply_response_headers(response, request_id)
 
 
 @app.middleware("http")
-async def request_size_guard(request: Request, call_next):
-    if request.headers.get("content-length", "").isdigit() and int(request.headers["content-length"]) > MAX_BODY:
-        return JSONResponse(status_code=413, content={"detail": "Request too large"})
+async def security_and_size_middleware(request: Request, call_next):
+    request_id = _resolve_request_id(request)
+    _inc_metric("requests_total")
+
+    content_length = request.headers.get("content-length", "")
+    if content_length.isdigit() and int(content_length) > MAX_BODY:
+        _inc_metric("rejected_oversized_total")
+        oversized = JSONResponse(
+            status_code=413,
+            content={"detail": "Request too large", "request_id": request_id},
+        )
+        return _apply_response_headers(oversized, request_id)
+
     body = await request.body()
     if len(body) > MAX_BODY:
-        return JSONResponse(status_code=413, content={"detail": "Request too large"})
-    return await call_next(request)
+        _inc_metric("rejected_oversized_total")
+        oversized = JSONResponse(
+            status_code=413,
+            content={"detail": "Request too large", "request_id": request_id},
+        )
+        return _apply_response_headers(oversized, request_id)
+
+    try:
+        response = await call_next(request)
+    except Exception as exc:  # noqa: BLE001
+        return await global_exception_handler(request, exc)
+
+    return _apply_response_headers(response, request_id)
 
 
 class ScanInput(BaseModel):
@@ -422,6 +514,10 @@ def analyze_payload(text: str) -> dict:
     if not safe_steps:
         safe_steps.append("Verify unexpected requests through an independently obtained official channel.")
 
+    _inc_metric("analyses_total")
+    if level == "high":
+        _inc_metric("high_risk_detections_total")
+
     return {
         "risk_score": score,
         "risk_level": level,
@@ -445,9 +541,71 @@ def analyze_payload(text: str) -> dict:
     }
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok", "version": "1.0.0", "ssrf_protection": "zero_external_network_fetch"}
+
+
+@app.api_route("/healthz", methods=["GET", "HEAD"])
+def healthz():
+    return {"status": "ok", "service": "cyber-dragon-threat-api", "version": "1.0.0"}
+
+
+@app.api_route("/readyz", methods=["GET", "HEAD"])
+def readyz():
+    return {
+        "status": "ready",
+        "service": "cyber-dragon-threat-api",
+        "version": "1.0.0",
+        "ssrf_protection": "zero_external_network_fetch",
+        "rules_loaded": len(HEURISTIC_RULES),
+    }
+
+
+@app.get("/metrics")
+def metrics(request: Request):
+    snap = _snapshot_metrics()
+    fmt = request.query_params.get("format", "").lower()
+    accept = request.headers.get("accept", "").lower()
+    wants_json = fmt == "json" or (
+        fmt != "prometheus" and "application/json" in accept and "text/plain" not in accept
+    )
+    if wants_json:
+        return JSONResponse(
+            content={
+                "service": "cyber-dragon-threat-api",
+                "version": "1.0.0",
+                **snap,
+            }
+        )
+
+    lines = [
+        "# HELP cyber_dragon_uptime_seconds Seconds since threat API startup",
+        "# TYPE cyber_dragon_uptime_seconds gauge",
+        f"cyber_dragon_uptime_seconds {snap['uptime_seconds']}",
+        "# HELP cyber_dragon_http_requests_total Total HTTP requests handled",
+        "# TYPE cyber_dragon_http_requests_total counter",
+        f"cyber_dragon_http_requests_total {snap['requests_total']}",
+        "# HELP cyber_dragon_http_requests_rejected_413_total Requests rejected for exceeding body limit",
+        "# TYPE cyber_dragon_http_requests_rejected_413_total counter",
+        f"cyber_dragon_http_requests_rejected_413_total {snap['rejected_oversized_total']}",
+        "# HELP cyber_dragon_analyses_total Total payloads analyzed",
+        "# TYPE cyber_dragon_analyses_total counter",
+        f"cyber_dragon_analyses_total {snap['analyses_total']}",
+        "# HELP cyber_dragon_high_risk_detections_total Total payloads classified as high risk",
+        "# TYPE cyber_dragon_high_risk_detections_total counter",
+        f"cyber_dragon_high_risk_detections_total {snap['high_risk_detections_total']}",
+        "# HELP cyber_dragon_incident_reports_total Total PII-redacted incident reports generated",
+        "# TYPE cyber_dragon_incident_reports_total counter",
+        f"cyber_dragon_incident_reports_total {snap['incident_reports_total']}",
+        "# HELP cyber_dragon_unhandled_errors_total Total unhandled exceptions caught safely",
+        "# TYPE cyber_dragon_unhandled_errors_total counter",
+        f"cyber_dragon_unhandled_errors_total {snap['unhandled_errors_total']}",
+    ]
+    return PlainTextResponse(
+        content="\n".join(lines) + "\n",
+        media_type="text/plain; version=0.0.4; charset=utf-8",
+    )
 
 
 @app.post("/api/v1/analyze")
@@ -468,9 +626,10 @@ def analyze_batch(payload: BatchScanInput):
 
 @app.post("/api/v1/incident-report")
 def incident_report(payload: ScanInput):
+    _inc_metric("incident_reports_total")
     analysis = analyze_payload(payload.text)
     redacted = redact_sensitive_text(payload.text)
-    generated_at = datetime.now(timezone.utc).isoformat()
+    generated_at = datetime.now(UTC).isoformat()
     md = "\n".join(
         [
             "# Cyber Dragon — Privacy-Preserving Threat Advisory Report",
