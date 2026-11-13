@@ -15,9 +15,12 @@
     "benchmark": "node --experimental-strip-types bin/cyber-dragon.mjs benchmark"
   },
   "dependencies": {
-    "next": "^15.5.0",
+    "next": "^15.5.29",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
+  },
+  "overrides": {
+    "postcss": ">=8.5.23"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
