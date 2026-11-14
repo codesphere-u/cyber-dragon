@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Threat Studio — Cyber Dragon v1.1.0</title>
+  <meta name="description" content="Interactive SSRF-free SMS, USSD forwarding, and Punycode URL analyzer studio for Cyber Dragon.">
+  <link rel="canonical" href="https://codesphere-u.github.io/cyber-dragon/studio.html">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="index.html"><img src="favicon.svg" alt="Cyber Dragon"><span>Cyber Dragon</span></a>
+      <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-label="Toggle navigation">Menu</button>
+      <nav id="nav-links" class="nav-links" aria-label="Primary">
+        <a href="index.html">Overview</a>
+        <a class="active" href="studio.html">Threat Studio</a>
+        <a href="proof.html">Benchmark Proof</a>
+        <a href="rules.html">Detection Rules</a>
+        <a href="docs.html">Docs</a>
+        <a class="nav-cta" href="https://github.com/codesphere-u/cyber-dragon/releases/tag/v1.1.0">v1.1.0 Release</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 3rem 0 4rem;">
+    <span class="eyebrow">On-Device Zero-Fetch Analyzer</span>
+    <h1>Interactive Threat Studio</h1>
+    <p class="lead">Test USSD diversion strings, IDN homograph URLs, and Mobile Money reversal lures locally with automatic PII redaction.</p>
+
+    <div class="studio-grid">
+      <section class="card card-white">
+        <h2>Inspect Payload</h2>
+        <div class="field">
+          <label for="studio-preset">Scenario Preset</label>
+          <select id="studio-preset">
+            <option value="ussd">USSD *21* Call/OTP Diversion</option>
+            <option value="homograph">IDN Homograph Phishing URL</option>
+            <option value="reversal">Mobile Money Reversal + PIN Lure</option>
+            <option value="benign">Benign Team Message (Control)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="studio-text">Untrusted Text / URL</label>
+          <textarea id="studio-text" rows="5">URGENT: Dial *21*0772112233# immediately to prevent SIM deactivation or Mobile Money suspension.</textarea>
+        </div>
+        <button id="studio-run" class="btn btn-primary" type="button" style="width:100%;">Analyze Locally</button>
+      </section>
+
+      <section class="card">
+        <span class="badge">5-Dimension Advisory</span>
+        <h2 style="margin-top:0.6rem;">Redacted Risk Report</h2>
+        <pre id="studio-output" class="code-block">{}</pre>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div><strong>Cyber Dragon v1.1.0</strong> · Threat Studio</div>
+      <div class="footer-links"><a href="index.html">Overview</a><a href="proof.html">Benchmark Proof</a><a href="docs.html">Docs</a></div>
+    </div>
+  </footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

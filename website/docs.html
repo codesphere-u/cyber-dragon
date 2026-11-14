@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation — Cyber Dragon v1.1.0</title>
+  <meta name="description" content="Quickstart for the Next.js workbench, Node.js CLI, and FastAPI threat-api service in Cyber Dragon v1.1.0.">
+  <link rel="canonical" href="https://codesphere-u.github.io/cyber-dragon/docs.html">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="index.html"><img src="favicon.svg" alt="Cyber Dragon"><span>Cyber Dragon</span></a>
+      <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-label="Toggle navigation">Menu</button>
+      <nav id="nav-links" class="nav-links" aria-label="Primary">
+        <a href="index.html">Overview</a>
+        <a href="studio.html">Threat Studio</a>
+        <a href="proof.html">Benchmark Proof</a>
+        <a href="rules.html">Detection Rules</a>
+        <a class="active" href="docs.html">Docs</a>
+        <a class="nav-cta" href="https://github.com/codesphere-u/cyber-dragon/releases/tag/v1.1.0">v1.1.0 Release</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container docs-layout">
+    <aside class="docs-sidebar" aria-label="Documentation sections">
+      <h4>Cyber Dragon Docs</h4>
+      <a class="active" href="#web">1. Web Workbench</a>
+      <a href="#cli">2. Developer CLI</a>
+      <a href="#api">3. FastAPI Service</a>
+      <a href="#redaction">4. PII Redaction</a>
+    </aside>
+
+    <article class="docs-article">
+      <span class="eyebrow">Reference · v1.1.0</span>
+      <h1 style="margin-top:0.85rem;">Cyber Dragon Documentation</h1>
+      <p class="lead">Run private on-device analysis via Next.js, Node.js CLI, or the stateless FastAPI microservice.</p>
+
+      <section id="web">
+        <h2>1. Web Workbench (<code>apps/web</code>)</h2>
+        <pre class="code-block">cd apps/web
+npm install
+npm test
+npm run benchmark
+npm run dev</pre>
+      </section>
+
+      <section id="cli">
+        <h2>2. Developer CLI</h2>
+        <pre class="code-block">node --experimental-strip-types bin/cyber-dragon.mjs scan "URGENT: Dial *21*0772112233# to prevent SIM deactivation"</pre>
+      </section>
+
+      <section id="api">
+        <h2>3. FastAPI Microservice (<code>services/threat-api</code>)</h2>
+        <pre class="code-block">cd services/threat-api
+pytest -q
+uvicorn app.main:app --host 127.0.0.1 --port 8000</pre>
+      </section>
+
+      <section id="redaction">
+        <h2>4. PII-Redacting Incident Reports</h2>
+        <p><code>POST /api/v1/incident-report</code> and <code>generateIncidentReport()</code> scrub phone numbers, 4&ndash;8 digit PINs/OTPs, emails, USSD strings, and query tokens.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div><strong>Cyber Dragon v1.1.0</strong> · Documentation</div>
+      <div class="footer-links"><a href="index.html">Overview</a><a href="studio.html">Threat Studio</a><a href="https://github.com/codesphere-u/cyber-dragon">GitHub</a></div>
+    </div>
+  </footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Cyber Dragon v1.1.0 — Complete Technical Reference
+
+Cyber Dragon evaluates untrusted SMS, WhatsApp, URL, USSD, and QR payloads deterministically with zero external network fetches:
+1. `credential_harvesting`
+2. `mobile_money_ussd_fraud` (`*21*`, `*61*`, `*62*`, `*67*`, `*165*`, `*185*`, plus `##002#` remediation)
+3. `domain_url_deception` (Punycode `xn--`, Levenshtein brand lookalikes across 18+ African & global brands, open-redirect inspection)
+4. `social_engineering_urgency`
+5. `advance_fee_investment_scam`
+
+Includes `redactSensitiveText` PII scrubbing, Markdown/JSON incident report generation, Node.js CLI (`apps/web/bin/cyber-dragon.mjs`), and stateless FastAPI service (`services/threat-api`).

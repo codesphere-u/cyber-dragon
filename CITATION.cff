@@ -6,9 +6,9 @@ authors:
     email: "codesphereinnovationz@gmail.com"
     affiliation: "Codesphere Innovations (U) Limited"
 title: "Cyber Dragon"
-abstract: "Gamified Cyber Threat Intelligence and Security Operations Simulation Platform"
-version: "1.0.0"
-date-released: 2026-11-10
+abstract: "Explainable, Privacy-Preserving Defensive Cybersecurity Platform for Phishing Links, IDN Homographs, and Mobile Money/USSD Social Engineering"
+version: "1.1.0"
+date-released: 2026-11-14
 url: "https://github.com/codesphere-u/cyber-dragon"
 repository-code: "https://github.com/codesphere-u/cyber-dragon"
 license: "MIT"

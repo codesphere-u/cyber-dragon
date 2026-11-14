@@ -1,8 +1,11 @@
-# 🐉 Cyber Dragon v1.0 — Community Cyber Defense & Digital Fraud Intelligence
+# 🐉 Cyber Dragon v1.1.0 — Community Cyber Defense & Digital Fraud Intelligence
 
 [![Validate Cyber Dragon](https://github.com/codesphere-u/cyber-dragon/actions/workflows/ci.yml/badge.svg)](https://github.com/codesphere-u/cyber-dragon/actions/workflows/ci.yml)
+[![Pages](https://github.com/codesphere-u/cyber-dragon/actions/workflows/pages.yml/badge.svg)](https://codesphere-u.github.io/cyber-dragon/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-emerald.svg)](LICENSE)
 [![Live Workbench](https://img.shields.io/badge/Live%20Demo-cyber--dragon--ivory.vercel.app-00d4aa)](https://cyber-dragon-ivory.vercel.app)
+
+> **Live Website & Docs:** [codesphere-u.github.io/cyber-dragon](https://codesphere-u.github.io/cyber-dragon/) · **Threat Studio:** [studio.html](https://codesphere-u.github.io/cyber-dragon/studio.html) · **Benchmark Proof:** [proof.html](https://codesphere-u.github.io/cyber-dragon/proof.html) · **Detection Rules:** [rules.html](https://codesphere-u.github.io/cyber-dragon/rules.html) · **Docs:** [docs.html](https://codesphere-u.github.io/cyber-dragon/docs.html) · [LLM Context](llms.txt)
 
 **Explainable, privacy-preserving defensive cybersecurity platform for identifying phishing links, IDN homograph attacks, and East African Mobile Money & USSD social engineering.**
 

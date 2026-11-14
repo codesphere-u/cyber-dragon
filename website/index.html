@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cyber Dragon v1.1.0 — SSRF-Free Phishing &amp; USSD Fraud Intelligence</title>
+  <meta name="description" content="Explainable 5-dimension risk scoring for phishing links, IDN homographs, USSD call forwarding traps, and East African Mobile Money scams.">
+  <meta name="theme-color" content="#047857">
+  <link rel="canonical" href="https://codesphere-u.github.io/cyber-dragon/">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Cyber Dragon v1.1.0 — Community Cyber Defense">
+  <meta property="og:description" content="Zero-network-fetch analysis for SMS, WhatsApp, URLs, USSD forwarding codes, and QR links with automatic PII redaction.">
+  <meta property="og:url" content="https://codesphere-u.github.io/cyber-dragon/">
+  <meta property="og:image" content="https://codesphere-u.github.io/cyber-dragon/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Cyber Dragon v1.1.0 — Phishing &amp; USSD Defense">
+  <meta name="twitter:description" content="25 passing tests, 18+ protected brands, *21* USSD forwarding detection, and PII-redacted incident reports.">
+  <meta name="twitter:image" content="https://codesphere-u.github.io/cyber-dragon/og-image.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Newsreader:opsz,wght@6..72,600;6..72,700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script defer data-domain="codesphere-u.github.io" src="https://plausible.io/js/script.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "Organization", "name": "Codesphere Innovations (U) Limited", "url": "https://github.com/codesphere-u" },
+      { "@type": "Person", "name": "Ivan Akandwanaho" },
+      { "@type": "WebSite", "name": "Cyber Dragon", "url": "https://codesphere-u.github.io/cyber-dragon/" },
+      {
+        "@type": "SoftwareApplication",
+        "name": "Cyber Dragon",
+        "softwareVersion": "1.1.0",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Linux, macOS, Windows",
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Does Cyber Dragon fetch or visit submitted URLs?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Never. Cyber Dragon is strictly SSRF-free and performs deterministic lexical, Punycode, brand-similarity, and USSD analysis without making external HTTP requests." }
+          },
+          {
+            "@type": "Question",
+            "name": "How does Cyber Dragon handle USSD forwarding scams?",
+            "acceptedAnswer": { "@type": "Answer", "text": "It detects *21*, *61*, *62*, and *67* call/OTP diversion strings alongside *165*/*185* mobile money lures and surfaces ##002# cancellation instructions." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="index.html"><img src="favicon.svg" alt="Cyber Dragon shield"><span>Cyber Dragon</span></a>
+      <button id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-label="Toggle navigation">Menu</button>
+      <nav id="nav-links" class="nav-links" aria-label="Primary">
+        <a class="active" href="index.html">Overview</a>
+        <a href="studio.html">Threat Studio</a>
+        <a href="proof.html">Benchmark Proof</a>
+        <a href="rules.html">Detection Rules</a>
+        <a href="docs.html">Docs</a>
+        <a class="nav-cta" href="https://github.com/codesphere-u/cyber-dragon/releases/tag/v1.1.0">v1.1.0 Release</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <span class="eyebrow">v1.1.0 · SSRF-Free Community Cyber Defense</span>
+        <h1>Explainable <span class="accent-word">phishing &amp; USSD</span> fraud intelligence.</h1>
+        <p class="lead">Cyber Dragon analyzes suspicious SMS, WhatsApp lures, Punycode homographs, and Mobile Money USSD traps deterministically with zero external network fetches and built-in PII redaction.</p>
+
+        <div class="btn-row">
+          <a class="btn btn-primary" href="studio.html">Open Threat Studio</a>
+          <a class="btn btn-amber" href="docs.html">Read Docs</a>
+          <a class="btn" href="https://github.com/codesphere-u/cyber-dragon">GitHub Repository</a>
+        </div>
+
+        <div class="install-box">
+          <code>cd apps/web &amp;&amp; npm test &amp;&amp; npm run benchmark</code>
+          <button class="copy-btn" type="button" data-copy="cd apps/web && npm test && npm run benchmark">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="grid-4">
+          <div class="card card-white"><div class="stat-value">5 Dims</div><div class="stat-label">Credential, MoMo/USSD, URL, Urgency &amp; Advance-Fee scoring</div></div>
+          <div class="card card-white"><div class="stat-value">18+ Brands</div><div class="stat-label">MTN, Airtel, M-Pesa, Stanbic, URA, Google, PayPal &amp; more</div></div>
+          <div class="card card-white"><div class="stat-value">0 Fetches</div><div class="stat-label">Strictly SSRF-free static &amp; structural URL deconstruction</div></div>
+          <div class="card card-white"><div class="stat-value">25 / 25</div><div class="stat-label">Passing Node.js CLI &amp; FastAPI microservice tests</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Built for mobile-first communities and SOC responders</h2>
+        <div class="grid-3">
+          <article class="card">
+            <span class="badge">USSD Guard</span>
+            <h3>Call &amp; OTP Diversion</h3>
+            <p>Flags <code>*21*</code>, <code>*61*</code>, <code>*62*</code>, <code>*67*</code> forwarding strings and <code>*165*</code>/<code>*185*</code> transfer traps with <code>##002#</code> reset steps.</p>
+          </article>
+          <article class="card">
+            <span class="badge badge-amber">IDN Homographs</span>
+            <h3>Brand Lookalike Engine</h3>
+            <p>Detects Punycode (<code>xn--</code>), Levenshtein lookalikes, and open-redirect query parameters while whitelisting authentic official domains.</p>
+          </article>
+          <article class="card">
+            <span class="badge">Privacy First</span>
+            <h3>PII Incident Scrubbing</h3>
+            <p>Automatically scrubs phone numbers, 4&ndash;8 digit PINs/OTPs, emails, and query tokens before exporting <code>.md</code> or <code>.json</code> briefs.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div><strong>Cyber Dragon v1.1.0</strong> · Apache-2.0 License · Codesphere Innovations (U) Limited</div>
+      <div class="footer-links"><a href="docs.html">Docs</a><a href="llms.txt">llms.txt</a><a href="sitemap.xml">sitemap.xml</a><a href="https://github.com/codesphere-u/cyber-dragon">GitHub</a></div>
+    </div>
+  </footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+# Cyber Dragon v1.1.0 — Complete Technical Reference
+
+Cyber Dragon evaluates untrusted SMS, WhatsApp, URL, USSD, and QR payloads deterministically with zero external network fetches across 5 threat dimensions, 18+ protected African & global brands, USSD diversion strings, and PII-redacting incident briefs.

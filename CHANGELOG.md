@@ -2,6 +2,12 @@
 
 All notable changes to **Cyber Dragon** are documented in this file.
 
+## [1.1.0] - 2026-11-14
+
+### Added
+- **Warm Ivory Editorial Multi-Page Website (`website/`)**: Dragon Pine (`#047857`) & Forge Gold (`#b45309`) Handy-inspired showcase with dedicated pages (`index.html`, `studio.html`, `proof.html`, `rules.html`, `docs.html`), interactive 5-dimension USSD/Phishing Threat Analyzer Studio, 25-test benchmark proof, and full GEO/SEO assets (`llms.txt`, `llms-full.txt`, `sitemap.xml`, `robots.txt`, `manifest.webmanifest`, `og-image.svg`).
+- **GitHub Pages Workflow & Docs**: Added `.github/workflows/pages.yml`, [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md), root `llms.txt` / `llms-full.txt`, and `apps/web/tests/website.test.mjs`.
+
 ## [1.0.0] - 2026-11-02
 
 ### Added

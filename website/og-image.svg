@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#fffdf2"/>
+  <rect x="48" y="48" width="1104" height="534" rx="32" fill="#f7f5e8" stroke="#047857" stroke-width="4"/>
+  <rect x="92" y="96" width="240" height="44" rx="22" fill="#d1fae5" stroke="#047857" stroke-width="2"/>
+  <text x="118" y="125" font-family="system-ui, sans-serif" font-size="20" font-weight="700" fill="#064e3b">CYBER DRAGON v1.1.0</text>
+  <text x="92" y="245" font-family="Georgia, serif" font-size="68" font-weight="700" fill="#1b1a17">SSRF-free phishing &amp;</text>
+  <text x="92" y="325" font-family="Georgia, serif" font-size="68" font-weight="700" fill="#047857">USSD fraud intelligence.</text>
+  <text x="92" y="405" font-family="system-ui, sans-serif" font-size="28" fill="#57534e">5-Dimension Risk Scorer · 18+ Brands · IDN Homographs · PII Redactor</text>
+  <rect x="92" y="466" width="240" height="56" rx="14" fill="#047857"/>
+  <text x="128" y="502" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="#fffdf2">25 / 25 Tests Pass</text>
+  <rect x="356" y="466" width="280" height="56" rx="14" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+  <text x="386" y="502" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="#78350f">Zero Network Fetches</text>
+</svg>

@@ -1,0 +1,10 @@
+# Cyber Dragon (`v1.1.0`)
+
+> Explainable, SSRF-free defensive cybersecurity platform for phishing links, IDN homographs, USSD call-forwarding traps, and Mobile Money social engineering.
+
+- Website: https://codesphere-u.github.io/cyber-dragon/
+- Threat Studio: https://codesphere-u.github.io/cyber-dragon/studio.html
+- Benchmark Proof: https://codesphere-u.github.io/cyber-dragon/proof.html
+- Detection Rules: https://codesphere-u.github.io/cyber-dragon/rules.html
+- Documentation: https://codesphere-u.github.io/cyber-dragon/docs.html
+- Repository: https://github.com/codesphere-u/cyber-dragon
