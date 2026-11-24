@@ -103,3 +103,54 @@ test('all 8 curated threat benchmark scenarios match expected risk levels', () =
     );
   }
 });
+
+test('supports Luganda (lg) and Swahili (sw) localized category titles and safe_next_steps', () => {
+  const sample = 'URGENT! Send your OTP and dial *21*0772112233# to claim your mobile money prize.';
+  const lg = analyzeText(sample, { locale: 'lg' });
+  assert.equal(lg.locale, 'lg');
+  assert.equal(lg.category_titles.credential_harvesting, 'Okubba Paasiwaadi, PIN ne OTP');
+  assert.ok(lg.safe_next_steps.some((s) => s.includes('Togaba PIN yo')));
+  assert.ok(lg.safe_next_steps.some((s) => s.includes('##002#')));
+
+  const sw = analyzeText(sample, { locale: 'sw' });
+  assert.equal(sw.locale, 'sw');
+  assert.equal(sw.category_titles.mobile_money_ussd_fraud, 'Ulaghai wa Pesa za Simu na USSD');
+  assert.ok(sw.safe_next_steps.some((s) => s.includes('Usiwahi kutuma')));
+  assert.ok(sw.safe_next_steps.some((s) => s.includes('##002#')));
+
+  const reportSw = generateIncidentReport(sample, { locale: 'sw' });
+  assert.ok(reportSw.markdown.includes('Ulaghai wa Pesa za Simu na USSD'));
+});
+
+test('detects West & Southern African mobile-money brand lookalikes without false positives on official domains', () => {
+  const lookalikes = [
+    ['https://wave-senegal-verify.top/login', 'WAVE'],
+    ['https://opay-ng-support.xyz/claim', 'OPAY'],
+    ['https://moniepoint-kyc-update.top/auth', 'MONIEPOINT'],
+    ['https://capitec-security-alert.xyz/verify', 'CAPITEC'],
+    ['https://fnb-online-verify.top/login', 'FNB'],
+    ['https://ecocash-bonus-claim.xyz/win', 'ECOCASH'],
+  ];
+
+  for (const [url, expectedBrand] of lookalikes) {
+    const res = analyzeText(`Check ${url}`);
+    assert.equal(res.url_inspections[0].impersonated_brand, expectedBrand, `Failed for ${url}`);
+  }
+
+  const officialUrls = [
+    'https://www.wave.com/en/',
+    'https://www.opayweb.com/',
+    'https://www.moniepoint.com/',
+    'https://www.capitecbank.co.za/',
+    'https://www.fnb.co.za/',
+    'https://www.ecocash.co.zw/',
+    'https://www.flutterwave.com/',
+    'https://microwave-recipes.org/guide',
+  ];
+
+  for (const url of officialUrls) {
+    const res = analyzeText(`Official link ${url}`);
+    assert.equal(res.url_inspections[0].impersonated_brand, null, `False positive on ${url}`);
+    assert.equal(res.risk_score, 0, `Unexpected risk score on ${url}`);
+  }
+});
