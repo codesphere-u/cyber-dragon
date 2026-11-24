@@ -5,7 +5,14 @@ export type ThreatCategory =
   | 'social_engineering_urgency'
   | 'advance_fee_investment_scam';
 
+export type SupportedLocale = 'en' | 'lg' | 'sw';
+
+export type AnalyzeOptions = {
+  locale?: SupportedLocale;
+};
+
 export type CategoryScores = Record<ThreatCategory, number>;
+export type CategoryTitles = Record<ThreatCategory, string>;
 
 export type ThreatFinding = {
   id: string;
@@ -47,11 +54,13 @@ export type RedactionSummary = {
 };
 
 export type ScanResult = {
+  locale: SupportedLocale;
   risk_score: number;
   risk_level: 'high' | 'elevated' | 'unknown_or_low_indicators';
   confidence: 'high_indicator_density' | 'moderate_indicator_density' | 'low_indicator_density';
   indicators: string[];
   category_scores: CategoryScores;
+  category_titles: CategoryTitles;
   findings: ThreatFinding[];
   url_inspections: UrlInspection[];
   ussd_inspections: UssdInspection[];
@@ -193,6 +202,118 @@ const HEURISTIC_RULES: HeuristicRule[] = [
   },
 ];
 
+export const CATEGORY_TITLES: Record<SupportedLocale, CategoryTitles> = {
+  en: {
+    credential_harvesting: 'Credential Harvesting',
+    mobile_money_ussd_fraud: 'Mobile Money & USSD Fraud',
+    domain_url_deception: 'Domain & URL Deception',
+    social_engineering_urgency: 'Social Engineering Urgency',
+    advance_fee_investment_scam: 'Advance-Fee & Investment Scam',
+  },
+  lg: {
+    credential_harvesting: 'Okubba Paasiwaadi, PIN ne OTP',
+    mobile_money_ussd_fraud: 'Obufere bwa Mobile Money ne USSD',
+    domain_url_deception: 'Enkologa za Webusayiti Ezirimu Obufere',
+    social_engineering_urgency: 'Okupapaatiza n’Okutiisatiisa',
+    advance_fee_investment_scam: 'Obufere bw’Okusasula Sooka n’Okusuubiza Amagoba',
+  },
+  sw: {
+    credential_harvesting: 'Wizi wa Nywila, PIN na OTP',
+    mobile_money_ussd_fraud: 'Ulaghai wa Pesa za Simu na USSD',
+    domain_url_deception: 'Udanganyifu wa Tovuti na Viungo',
+    social_engineering_urgency: 'Shinikizo la Haraka na Hila',
+    advance_fee_investment_scam: 'Ulaghai wa Ada za Awali na Uwekezaji',
+  },
+};
+
+type LocalizedCopy = {
+  steps: {
+    credential_harvesting: string;
+    mobile_money_ussd_fraud: string;
+    ussd_diversion: string;
+    domain_url_deception: string;
+    advance_fee_investment_scam: string;
+    fallback: string;
+  };
+  recommendation_elevated: string;
+  recommendation_low: string;
+  disclaimer: string;
+};
+
+const LOCALIZED_COPY: Record<SupportedLocale, LocalizedCopy> = {
+  en: {
+    steps: {
+      credential_harvesting:
+        'Never reply with or enter your PIN, OTP, password, or 6-digit verification code.',
+      mobile_money_ussd_fraud:
+        'Check your real mobile money balance independently using your official app or standard balance menu before acting on any SMS.',
+      ussd_diversion:
+        'Do not dial the USSD string. If you already dialed a suspicious *21* or *62* code, dial ##002# immediately to clear call/SMS forwarding.',
+      domain_url_deception:
+        'Do not open the link. Navigate to the institution by typing its known official web address directly into your browser.',
+      advance_fee_investment_scam:
+        'Refuse any request for upfront processing, clearance, or unlocking fees—legitimate awards and refunds do not require advance payments.',
+      fallback:
+        'Verify unexpected messages through an independently trusted contact channel before sharing information or sending funds.',
+    },
+    recommendation_elevated:
+      'Do not share PINs, OTPs or passwords. Verify unexpected requests using independently obtained official contact details.',
+    recommendation_low:
+      'No strong heuristic indicators found. This does not establish safety; verify the source independently.',
+    disclaimer:
+      'Heuristic assessment only. No website was visited, no reputation lookup was performed, and no safety guarantee is implied.',
+  },
+  lg: {
+    steps: {
+      credential_harvesting:
+        'Togaba PIN yo, OTP, paasiwaadi, oba koodi ya nnamba 6 ey’okukakasa eri muntu yenna.',
+      mobile_money_ussd_fraud:
+        'Sooka okeberere ssente zo entuufu ku Mobile Money ng’okozesa app entongole oba menu y’okukebera bbalansi nga tonnakola kintu kyonna ku SMS.',
+      ussd_diversion:
+        'Tokuba nnamba eyo eya USSD. Bw’oba wamaze okukuba koodi eya *21* oba *62*, kuba ##002# amangu ddala okusazaamu okukyusa amasimu ne SMS.',
+      domain_url_deception:
+        'Toggulawo link eyo. Genda ku webusayiti entongole ng’owandiika endagiriro gy’omanyi butereevu mu browser yo.',
+      advance_fee_investment_scam:
+        'Gaana okusasula ssente ez’okuwandiisa oba ez’okuggyaayo ebirabo—ebirabo n’okuddizibwa ssente ebituufu tebisaba kusooka kusasula.',
+      fallback:
+        'Kakasa obubaka obw’ekikangabwa ng’oyita ku nnamba entongole gy’omanyi nga tonnagaba mawulire oba kusindika ssente.',
+    },
+    recommendation_elevated:
+      'Togaba PIN, OTP oba paasiwaadi. Kakasa okusaba okw’ekikangabwa ng’oyita ku nnamba entongole ezimanyiddwa.',
+    recommendation_low:
+      'Tewali bubonero bwa maanyi obw’obufere obulabiddwa. Kino tekikakasa nti ky’ekituufu; kakasa ensibuko yaakyo ku lulwo.',
+    disclaimer:
+      'Okukebera kuno kwa mateeka ag’okwekaliriza kyokka. Tewali webusayiti yakyaliddwa era tewali bukakafu bwa bukuumi obuweereddwa.',
+  },
+  sw: {
+    steps: {
+      credential_harvesting:
+        'Usiwahi kutuma au kuingiza PIN yako, OTP, nywila, au msimbo wa uthibitisho wa tarakimu 6.',
+      mobile_money_ussd_fraud:
+        'Kagua salio lako halisi la pesa za simu kupitia programu rasmi au menyu ya kawaida ya salio kabla ya kuchukua hatua yoyote kwenye SMS.',
+      ussd_diversion:
+        'Usipige msimbo huo wa USSD. Ikiwa tayari umepiga *21* au *62*, piga ##002# mara moja ili kufuta uelekezaji wa simu na SMS.',
+      domain_url_deception:
+        'Usifungue kiungo hicho. Tembelea tovuti rasmi ya taasisi kwa kuandika anwani yake halisi moja kwa moja kwenye kivinjari chako.',
+      advance_fee_investment_scam:
+        'Kataa maombi yote ya ada ya awali ya usindikaji au kufungua zawadi—zawadi na marejesho halali hayahitaji malipo ya awali.',
+      fallback:
+        'Thibitisha ujumbe usiotarajiwa kupitia njia rasmi ya mawasiliano unayoiamini kabla ya kushiriki taarifa au kutuma pesa.',
+    },
+    recommendation_elevated:
+      'Usishiriki PIN, OTP au nywila. Thibitisha maombi yasiyotarajiwa kwa kutumia mawasiliano rasmi uliyopata binafsi.',
+    recommendation_low:
+      'Hakuna viashiria vikali vya ulaghai vilivyopatikana. Hii haithibitishi usalama; thibitisha chanzo kwa kujitegemea.',
+    disclaimer:
+      'Tathmini ya viashiria pekee. Hakuna tovuti iliyotembelewa na hakuna dhamana ya usalama inayotolewa.',
+  },
+};
+
+function resolveLocale(locale?: string): SupportedLocale {
+  if (locale === 'lg' || locale === 'sw') return locale;
+  return 'en';
+}
+
 const PROTECTED_BRANDS: Record<string, string[]> = {
   mtn: ['mtn.com', 'mtn.co.ug', 'mtn.co.rw', 'mtn.com.gh', 'mtn.ng', 'mtnmomo.com'],
   airtel: ['airtel.com', 'airtel.co.ug', 'airtel.co.ke', 'airtel.com.ng'],
@@ -203,6 +324,16 @@ const PROTECTED_BRANDS: Record<string, string[]> = {
   flutterwave: ['flutterwave.com'],
   paystack: ['paystack.com'],
   chipper: ['chippercash.com'],
+  wave: ['wave.com'],
+  opay: ['opayweb.com', 'opaycheckout.com'],
+  moniepoint: ['moniepoint.com'],
+  palmpay: ['palmpay.com'],
+  kuda: ['kuda.com'],
+  capitec: ['capitecbank.co.za'],
+  fnb: ['fnb.co.za'],
+  ecocash: ['ecocash.co.zw'],
+  tymebank: ['tymebank.co.za'],
+  vodacom: ['vodacom.co.za', 'vodacom.co.tz'],
   ura: ['ura.go.ug'],
   nssf: ['nssfug.org'],
   whatsapp: ['whatsapp.com', 'wa.me'],
@@ -288,11 +419,24 @@ function detectBrandImpersonation(host: string): string | null {
   const primaryLabel = regDomain.split('.')[0] || '';
   const normalizedLabel = normalizeHomoglyphs(primaryLabel);
 
-  for (const [brand, officialDomains] of Object.entries(PROTECTED_BRANDS)) {
-    const isOfficial = officialDomains.some(
-      (official) => cleanHost === official || cleanHost.endsWith('.' + official)
-    );
-    if (isOfficial) return null;
+  // Never flag a verified official domain of any protected institution
+  for (const officialDomains of Object.values(PROTECTED_BRANDS)) {
+    if (
+      officialDomains.some(
+        (official) => cleanHost === official || cleanHost.endsWith('.' + official)
+      )
+    ) {
+      return null;
+    }
+  }
+
+  for (const [brand] of Object.entries(PROTECTED_BRANDS)) {
+    if (brand.length <= 4) {
+      if (tokens.includes(brand) || primaryLabel === brand || normalizedLabel === brand) {
+        return brand.toUpperCase();
+      }
+      continue;
+    }
 
     if (tokens.includes(brand) || primaryLabel.includes(brand) || normalizedLabel.includes(brand)) {
       return brand.toUpperCase();
@@ -435,7 +579,9 @@ export function redactSensitiveText(text: string): {
   };
 }
 
-export function analyzeText(text: string): ScanResult {
+export function analyzeText(text: string, options?: AnalyzeOptions): ScanResult {
+  const locale = resolveLocale(options?.locale);
+  const copy = LOCALIZED_COPY[locale];
   const categoryScores: CategoryScores = {
     credential_harvesting: 0,
     mobile_money_ussd_fraud: 0,
@@ -666,62 +812,49 @@ export function analyzeText(text: string): ScanResult {
 
   const safeNextSteps: string[] = [];
   if (categoryScores.credential_harvesting > 0) {
-    safeNextSteps.push(
-      'Never reply with or enter your PIN, OTP, password, or 6-digit verification code.'
-    );
+    safeNextSteps.push(copy.steps.credential_harvesting);
   }
   if (categoryScores.mobile_money_ussd_fraud > 0) {
-    safeNextSteps.push(
-      'Check your real mobile money balance independently using your official app or standard balance menu before acting on any SMS.'
-    );
+    safeNextSteps.push(copy.steps.mobile_money_ussd_fraud);
   }
   if (ussd.inspections.some((u) => u.pattern_type === 'call_or_sms_diversion_ussd')) {
-    safeNextSteps.push(
-      'Do not dial the USSD string. If you already dialed a suspicious *21* or *62* code, dial ##002# immediately to clear call/SMS forwarding.'
-    );
+    safeNextSteps.push(copy.steps.ussd_diversion);
   }
   if (categoryScores.domain_url_deception > 0) {
-    safeNextSteps.push(
-      'Do not open the link. Navigate to the institution by typing its known official web address directly into your browser.'
-    );
+    safeNextSteps.push(copy.steps.domain_url_deception);
   }
   if (categoryScores.advance_fee_investment_scam > 0) {
-    safeNextSteps.push(
-      'Refuse any request for upfront processing, clearance, or unlocking fees—legitimate awards and refunds do not require advance payments.'
-    );
+    safeNextSteps.push(copy.steps.advance_fee_investment_scam);
   }
   if (safeNextSteps.length === 0) {
-    safeNextSteps.push(
-      'Verify unexpected messages through an independently trusted contact channel before sharing information or sending funds.'
-    );
+    safeNextSteps.push(copy.steps.fallback);
   }
 
   const redaction = redactSensitiveText(text);
 
   return {
+    locale,
     risk_score: score,
     risk_level: riskLevel,
     confidence,
     indicators: uniqueIndicators,
     category_scores: categoryScores,
+    category_titles: { ...CATEGORY_TITLES[locale] },
     findings,
     url_inspections: urlInspections,
     ussd_inspections: ussd.inspections,
     redaction_summary: redaction.counts,
     safe_next_steps: safeNextSteps,
-    recommendation:
-      score >= 30
-        ? 'Do not share PINs, OTPs or passwords. Verify unexpected requests using independently obtained official contact details.'
-        : 'No strong heuristic indicators found. This does not establish safety; verify the source independently.',
-    disclaimer:
-      'Heuristic assessment only. No website was visited, no reputation lookup was performed, and no safety guarantee is implied.',
+    recommendation: score >= 30 ? copy.recommendation_elevated : copy.recommendation_low,
+    disclaimer: copy.disclaimer,
   };
 }
 
-export function generateIncidentReport(text: string): IncidentReport {
-  const analysis = analyzeText(text);
+export function generateIncidentReport(text: string, options?: AnalyzeOptions): IncidentReport {
+  const analysis = analyzeText(text, options);
   const { redacted_text, counts } = redactSensitiveText(text);
   const generatedAt = new Date().toISOString();
+  const titles = analysis.category_titles;
 
   const lines: string[] = [
     '# Cyber Dragon — Privacy-Preserving Threat Advisory Report',
@@ -731,11 +864,11 @@ export function generateIncidentReport(text: string): IncidentReport {
     `- **Indicator Density:** ${analysis.confidence}`,
     '',
     '## 1. Category Risk Breakdown',
-    `- **Credential Harvesting:** ${analysis.category_scores.credential_harvesting}/100`,
-    `- **Mobile Money & USSD Fraud:** ${analysis.category_scores.mobile_money_ussd_fraud}/100`,
-    `- **Domain & URL Deception:** ${analysis.category_scores.domain_url_deception}/100`,
-    `- **Social Engineering Urgency:** ${analysis.category_scores.social_engineering_urgency}/100`,
-    `- **Advance-Fee & Investment Scam:** ${analysis.category_scores.advance_fee_investment_scam}/100`,
+    `- **${titles.credential_harvesting}:** ${analysis.category_scores.credential_harvesting}/100`,
+    `- **${titles.mobile_money_ussd_fraud}:** ${analysis.category_scores.mobile_money_ussd_fraud}/100`,
+    `- **${titles.domain_url_deception}:** ${analysis.category_scores.domain_url_deception}/100`,
+    `- **${titles.social_engineering_urgency}:** ${analysis.category_scores.social_engineering_urgency}/100`,
+    `- **${titles.advance_fee_investment_scam}:** ${analysis.category_scores.advance_fee_investment_scam}/100`,
     '',
     '## 2. Triggered Heuristic Indicators',
     ...(analysis.indicators.length > 0

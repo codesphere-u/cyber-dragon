@@ -201,3 +201,54 @@ def test_batch_analysis():
     assert data["count"] == 2
     assert data["results"][0]["risk_level"] in ("elevated", "high")
     assert data["results"][1]["risk_score"] == 0
+
+
+def test_localized_analysis_luganda_and_swahili():
+    sample = "URGENT! Send your OTP and dial *21*0772112233# for mobile money verification."
+
+    lg = client.post("/api/v1/analyze", json={"text": sample, "locale": "lg"})
+    assert lg.status_code == 200
+    lg_body = lg.json()
+    assert lg_body["locale"] == "lg"
+    assert lg_body["category_titles"]["mobile_money_ussd_fraud"] == "Obufere bwa Mobile Money ne USSD"
+    assert any("Togaba PIN yo" in step for step in lg_body["safe_next_steps"])
+    assert any("##002#" in step for step in lg_body["safe_next_steps"])
+
+    sw = client.post("/api/v1/analyze", json={"text": sample, "locale": "sw"})
+    assert sw.status_code == 200
+    sw_body = sw.json()
+    assert sw_body["locale"] == "sw"
+    assert sw_body["category_titles"]["credential_harvesting"] == "Wizi wa Nywila, PIN na OTP"
+    assert any("Usiwahi kutuma" in step for step in sw_body["safe_next_steps"])
+
+
+def test_west_and_southern_african_brand_registry_and_no_false_positives():
+    lookalikes = [
+        ("https://wave-verify-login.top/account", "WAVE"),
+        ("https://opay-ng-support.xyz/reset", "OPAY"),
+        ("https://moniepoint-kyc.top/confirm", "MONIEPOINT"),
+        ("https://capitec-security.xyz/auth", "CAPITEC"),
+        ("https://fnb-online-verify.top/login", "FNB"),
+        ("https://ecocash-claim.xyz/prize", "ECOCASH"),
+    ]
+    for url, expected_brand in lookalikes:
+        res = client.post("/api/v1/analyze", json={"text": f"Visit {url}"})
+        assert res.status_code == 200
+        assert res.json()["url_inspections"][0]["impersonated_brand"] == expected_brand
+
+    official_urls = [
+        "https://www.wave.com/en/",
+        "https://www.opayweb.com/",
+        "https://www.moniepoint.com/",
+        "https://www.capitecbank.co.za/",
+        "https://www.fnb.co.za/",
+        "https://www.ecocash.co.zw/",
+        "https://www.flutterwave.com/",
+        "https://microwave-recipes.org/guide",
+    ]
+    for url in official_urls:
+        res = client.post("/api/v1/analyze", json={"text": f"Official {url}"})
+        assert res.status_code == 200
+        body = res.json()
+        assert body["url_inspections"][0]["impersonated_brand"] is None
+        assert body["risk_score"] == 0

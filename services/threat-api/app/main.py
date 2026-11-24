@@ -7,6 +7,7 @@ import threading
 import time
 import uuid
 from datetime import UTC, datetime
+from typing import Literal
 from urllib.parse import parse_qs, urlsplit
 
 from fastapi import FastAPI, Request, Response
@@ -118,12 +119,17 @@ async def security_and_size_middleware(request: Request, call_next):
     return _apply_response_headers(response, request_id)
 
 
+SupportedLocale = Literal["en", "lg", "sw"]
+
+
 class ScanInput(BaseModel):
     text: str = Field(min_length=1, max_length=8000)
+    locale: SupportedLocale = "en"
 
 
 class BatchScanInput(BaseModel):
     items: list[str] = Field(min_length=1, max_length=20)
+    locale: SupportedLocale = "en"
 
 
 HEURISTIC_RULES = [
@@ -229,6 +235,69 @@ HEURISTIC_RULES = [
     ),
 ]
 
+CATEGORY_TITLES: dict[str, dict[str, str]] = {
+    "en": {
+        "credential_harvesting": "Credential Harvesting",
+        "mobile_money_ussd_fraud": "Mobile Money & USSD Fraud",
+        "domain_url_deception": "Domain & URL Deception",
+        "social_engineering_urgency": "Social Engineering Urgency",
+        "advance_fee_investment_scam": "Advance-Fee & Investment Scam",
+    },
+    "lg": {
+        "credential_harvesting": "Okubba Paasiwaadi, PIN ne OTP",
+        "mobile_money_ussd_fraud": "Obufere bwa Mobile Money ne USSD",
+        "domain_url_deception": "Enkologa za Webusayiti Ezirimu Obufere",
+        "social_engineering_urgency": "Okupapaatiza n’Okutiisatiisa",
+        "advance_fee_investment_scam": "Obufere bw’Okusasula Sooka n’Okusuubiza Amagoba",
+    },
+    "sw": {
+        "credential_harvesting": "Wizi wa Nywila, PIN na OTP",
+        "mobile_money_ussd_fraud": "Ulaghai wa Pesa za Simu na USSD",
+        "domain_url_deception": "Udanganyifu wa Tovuti na Viungo",
+        "social_engineering_urgency": "Shinikizo la Haraka na Hila",
+        "advance_fee_investment_scam": "Ulaghai wa Ada za Awali na Uwekezaji",
+    },
+}
+
+LOCALIZED_COPY: dict[str, dict[str, str]] = {
+    "en": {
+        "step_cred": "Never reply with or enter your PIN, OTP, password, or verification code.",
+        "step_momo": "Verify your real mobile money balance independently using your official app or menu.",
+        "step_ussd": "Do not dial the USSD string. Dial ##002# immediately to cancel any active call/OTP forwarding.",
+        "step_url": "Do not open the link. Navigate to the official institution website directly.",
+        "step_fee": "Refuse any request for upfront processing, clearance, or unlocking fees.",
+        "step_fallback": "Verify unexpected requests through an independently obtained official channel.",
+        "rec_high": "Do not share passwords, PINs or OTPs. Verify unexpected requests through official channels.",
+        "rec_low": "No strong heuristic indicators found. This does not establish safety; verify the source independently.",
+        "disclaimer": (
+            "Heuristic assessment only; no live reputation check, AI inference, or guarantee of safety. "
+            "Content is not stored by this service."
+        ),
+    },
+    "lg": {
+        "step_cred": "Togaba PIN yo, OTP, paasiwaadi, oba koodi ey’okukakasa eri muntu yenna.",
+        "step_momo": "Sooka okeberere bbalansi yo entuufu ku Mobile Money ng’okozesa app entongole oba menu y’okukebera bbalansi.",
+        "step_ussd": "Tokuba nnamba eyo eya USSD. Kuba ##002# amangu ddala okusazaamu okukyusa amasimu oba OTP.",
+        "step_url": "Toggulawo link eyo. Genda ku webusayiti entongole ng’owandiika endagiriro gy’omanyi butereevu.",
+        "step_fee": "Gaana okusasula ssente ez’okuwandiisa oba ez’okuggyaayo ebirabo nga tonnafuna kyonna.",
+        "step_fallback": "Kakasa okusaba okw’ekikangabwa ng’oyita ku nnamba entongole gy’omanyi ku lulwo.",
+        "rec_high": "Togaba paasiwaadi, PIN oba OTP. Kakasa okusaba okw’ekikangabwa ng’oyita ku nkola entongole.",
+        "rec_low": "Tewali bubonero bwa maanyi obw’obufere obulabiddwa. Kino tekikakasa bukuumi; kakasa ensibuko ku lulwo.",
+        "disclaimer": "Okukebera kuno kwa mateeka ag’okwekaliriza kyokka; tewali webusayiti yakyaliddwa era obubaka tebuterekebwa.",
+    },
+    "sw": {
+        "step_cred": "Usiwahi kutuma au kuingiza PIN yako, OTP, nywila, au msimbo wa uthibitisho.",
+        "step_momo": "Thibitisha salio lako halisi la pesa za simu kupitia programu rasmi au menyu ya kawaida.",
+        "step_ussd": "Usipige msimbo huo wa USSD. Piga ##002# mara moja ili kufuta uelekezaji wa simu au OTP.",
+        "step_url": "Usifungue kiungo hicho. Tembelea tovuti rasmi ya taasisi moja kwa moja.",
+        "step_fee": "Kataa maombi yote ya ada ya awali ya usindikaji au kufungua zawadi.",
+        "step_fallback": "Thibitisha maombi yasiyotarajiwa kupitia njia rasmi ya mawasiliano uliyopata binafsi.",
+        "rec_high": "Usishiriki nywila, PIN au OTP. Thibitisha maombi yasiyotarajiwa kupitia njia rasmi.",
+        "rec_low": "Hakuna viashiria vikali vilivyopatikana. Hii haithibitishi usalama; thibitisha chanzo kwa kujitegemea.",
+        "disclaimer": "Tathmini ya viashiria pekee; hakuna tovuti iliyotembelewa na maudhui hayahifadhiwi na huduma hii.",
+    },
+}
+
 PROTECTED_BRANDS: dict[str, list[str]] = {
     "mtn": ["mtn.com", "mtn.co.ug", "mtn.co.rw", "mtn.com.gh", "mtn.ng", "mtnmomo.com"],
     "airtel": ["airtel.com", "airtel.co.ug", "airtel.co.ke", "airtel.com.ng"],
@@ -239,6 +308,16 @@ PROTECTED_BRANDS: dict[str, list[str]] = {
     "flutterwave": ["flutterwave.com"],
     "paystack": ["paystack.com"],
     "chipper": ["chippercash.com"],
+    "wave": ["wave.com"],
+    "opay": ["opayweb.com", "opaycheckout.com"],
+    "moniepoint": ["moniepoint.com"],
+    "palmpay": ["palmpay.com"],
+    "kuda": ["kuda.com"],
+    "capitec": ["capitecbank.co.za"],
+    "fnb": ["fnb.co.za"],
+    "ecocash": ["ecocash.co.zw"],
+    "tymebank": ["tymebank.co.za"],
+    "vodacom": ["vodacom.co.za", "vodacom.co.tz"],
     "ura": ["ura.go.ug"],
     "nssf": ["nssfug.org"],
     "whatsapp": ["whatsapp.com", "wa.me"],
@@ -269,9 +348,14 @@ def _detect_brand_impersonation(host: str) -> str | None:
     reg = _registered_domain(clean)
     primary = reg.split(".")[0] if reg else ""
     tokens = [t for t in re.split(r"[.-]", clean) if t]
-    for brand, officials in PROTECTED_BRANDS.items():
+    for officials in PROTECTED_BRANDS.values():
         if any(clean == off or clean.endswith("." + off) for off in officials):
             return None
+    for brand in PROTECTED_BRANDS:
+        if len(brand) <= 4:
+            if brand in tokens or primary == brand:
+                return brand.upper()
+            continue
         if brand in tokens or brand in primary:
             return brand.upper()
     return None
@@ -344,7 +428,9 @@ def redact_sensitive_text(text: str) -> dict:
     }
 
 
-def analyze_payload(text: str) -> dict:
+def analyze_payload(text: str, locale: str = "en") -> dict:
+    resolved_locale = locale if locale in LOCALIZED_COPY else "en"
+    copy = LOCALIZED_COPY[resolved_locale]
     lower = text.lower()
     category_scores = {
         "credential_harvesting": 0,
@@ -504,40 +590,37 @@ def analyze_payload(text: str) -> dict:
 
     safe_steps: list[str] = []
     if category_scores["credential_harvesting"] > 0:
-        safe_steps.append("Never reply with or enter your PIN, OTP, password, or verification code.")
+        safe_steps.append(copy["step_cred"])
     if category_scores["mobile_money_ussd_fraud"] > 0:
-        safe_steps.append("Verify your real mobile money balance independently using your official app or menu.")
+        safe_steps.append(copy["step_momo"])
     if any(u["pattern_type"] == "call_or_sms_diversion_ussd" for u in ussd_inspections):
-        safe_steps.append("Do not dial the USSD string. Dial ##002# immediately to cancel any active call/OTP forwarding.")
+        safe_steps.append(copy["step_ussd"])
     if category_scores["domain_url_deception"] > 0:
-        safe_steps.append("Do not open the link. Navigate to the official institution website directly.")
+        safe_steps.append(copy["step_url"])
+    if category_scores["advance_fee_investment_scam"] > 0:
+        safe_steps.append(copy["step_fee"])
     if not safe_steps:
-        safe_steps.append("Verify unexpected requests through an independently obtained official channel.")
+        safe_steps.append(copy["step_fallback"])
 
     _inc_metric("analyses_total")
     if level == "high":
         _inc_metric("high_risk_detections_total")
 
     return {
+        "locale": resolved_locale,
         "risk_score": score,
         "risk_level": level,
         "confidence": confidence,
         "indicators": unique_indicators,
         "category_scores": category_scores,
+        "category_titles": dict(CATEGORY_TITLES[resolved_locale]),
         "findings": findings,
         "url_inspections": url_inspections,
         "ussd_inspections": ussd_inspections,
         "redaction_summary": redaction["counts"],
         "safe_next_steps": safe_steps,
-        "recommendation": (
-            "Do not share passwords, PINs or OTPs. Verify unexpected requests through official channels."
-            if score >= 30
-            else "No strong heuristic indicators found. This does not establish safety; verify the source independently."
-        ),
-        "disclaimer": (
-            "Heuristic assessment only; no live reputation check, AI inference, or guarantee of safety. "
-            "Content is not stored by this service."
-        ),
+        "recommendation": copy["rec_high"] if score >= 30 else copy["rec_low"],
+        "disclaimer": copy["disclaimer"],
     }
 
 
@@ -610,7 +693,9 @@ def metrics(request: Request):
 
 @app.post("/api/v1/analyze")
 def analyze(payload: ScanInput):
-    return analyze_payload(payload.text)
+    if payload.locale == "en":
+        return analyze_payload(payload.text)
+    return analyze_payload(payload.text, locale=payload.locale)
 
 
 @app.post("/api/v1/analyze/batch")
@@ -620,14 +705,21 @@ def analyze_batch(payload: BatchScanInput):
         trimmed = item.strip()[:8000]
         if not trimmed:
             continue
-        results.append(analyze_payload(trimmed))
+        if payload.locale == "en":
+            results.append(analyze_payload(trimmed))
+        else:
+            results.append(analyze_payload(trimmed, locale=payload.locale))
     return {"count": len(results), "results": results}
 
 
 @app.post("/api/v1/incident-report")
 def incident_report(payload: ScanInput):
     _inc_metric("incident_reports_total")
-    analysis = analyze_payload(payload.text)
+    analysis = (
+        analyze_payload(payload.text)
+        if payload.locale == "en"
+        else analyze_payload(payload.text, locale=payload.locale)
+    )
     redacted = redact_sensitive_text(payload.text)
     generated_at = datetime.now(UTC).isoformat()
     md = "\n".join(
